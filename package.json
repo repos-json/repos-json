@@ -1,0 +1,61 @@
+{
+  "name": "repo-json",
+  "version": "0.1.0",
+  "description": "Specification and reference implementation for repo.json — an open metadata file with which a repository declares what it is and how it should look",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://repos-json.github.io/repos-json/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/repos-json/repos-json.git"
+  },
+  "bugs": {
+    "url": "https://github.com/repos-json/repos-json/issues"
+  },
+  "keywords": [
+    "repo-json",
+    "specification",
+    "repository",
+    "metadata",
+    "icon",
+    "branding"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": "./schema/repo.schema.json",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "schema",
+    "spec"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "tsx --test test/test_*.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.2",
+    "ajv": "^8.20.0",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.13",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.0"
+  }
+}

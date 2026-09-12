@@ -1,0 +1,32 @@
+title: repo.json
+description: >-
+  An open metadata file with which a repository declares what it is and how it should look —
+  name, description, icon and colours, with a namespace for tool-specific extensions.
+# Built via GitHub Actions (.github/workflows/pages.yml) with Jekyll 4 + the just-the-docs gem, so
+# the current theme is available rather than the legacy Pages Jekyll 3.9 builder.
+theme: just-the-docs
+
+search_enabled: true
+color_scheme: light
+heading_anchors: true
+aux_links:
+  "GitHub":
+    - "https://github.com/repos-json/repos-json"
+
+# The site is built from the repository root so that it serves spec/repo-json.md ITSELF. Copying the
+# normative text into a docs/ folder would guarantee the two drift, and a specification with two
+# versions is not one.
+exclude:
+  - node_modules/
+  - dist/
+  - src/
+  - test/
+  - plans/
+  - README.md
+  - package.json
+  - yarn.lock
+  - tsconfig.json
+  - tsconfig.build.json
+  - eslint.config.mjs
+  - Gemfile
+  - Gemfile.lock

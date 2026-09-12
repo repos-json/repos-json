@@ -1,0 +1,41 @@
+name: Node.js CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+# Everything here reads: checkout, install, lint, typecheck, test, build. Nothing writes to the
+# repository or the API, so the default token needs nothing else.
+permissions:
+  contents: read
+
+jobs:
+  lint_test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      # Three platforms because this package decides what a PATH is: separators, absolute forms and
+      # UNC paths differ, and a containment rule that only holds on one platform is not a rule.
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [22.x, 24.x]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - run: yarn install --frozen-lockfile --network-timeout 120000
+      - run: yarn typecheck
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn test
+      - run: yarn build

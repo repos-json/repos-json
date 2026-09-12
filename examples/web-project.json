@@ -1,0 +1,8 @@
+{
+  "$schema": "https://repos-json.github.io/repos-json/schema/repo.schema.json",
+  "name": "acme.com",
+  "color": "#be123c",
+  "extensions": {
+    "mulmoterminal": { "orderPriority": 20 }
+  }
+}

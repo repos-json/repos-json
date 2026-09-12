@@ -1,0 +1,8 @@
+{
+  "$schema": "https://repos-json.github.io/repos-json/schema/repo.schema.json",
+  "name": "diffusion-lab",
+  "description": "Training and evaluation for latent diffusion models",
+  "icon": "docs/logo.png",
+  "color": "#0f766e",
+  "keywords": ["diffusion", "pytorch", "research"]
+}

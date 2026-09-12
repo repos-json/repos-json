@@ -1,0 +1,22 @@
+{
+  "$schema": "https://repos-json.github.io/repos-json/schema/repo.schema.json",
+  "name": "stable-diffusion-webui",
+  "description": "Browser interface for Stable Diffusion",
+  "icon": [
+    { "src": "assets/logo.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "assets/logo-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "https://cdn.example/logo-192.png", "sizes": "192x192" }
+  ],
+  "color": {
+    "primary": "#7c3aed",
+    "accent": "#22d3ee",
+    "background": "#0b1020"
+  },
+  "homepage": "https://example.com",
+  "authors": ["Ada Lovelace <ada@example.com>", "Grace Hopper"],
+  "keywords": ["stable-diffusion", "image-generation", "web-ui"],
+  "extensions": {
+    "mulmoterminal": { "theme": "midnight", "badgeColor": "#5b21b6" },
+    "example-tool": { "anything": "this tool understands" }
+  }
+}

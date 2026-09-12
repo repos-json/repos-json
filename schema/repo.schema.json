@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://repos-json.github.io/repos-json/schema/repo.schema.json",
+  "title": "repo.json",
+  "description": "An open repository metadata file: what a repository is and how it should be presented. See https://repos-json.github.io/repos-json/spec/",
+  "$comment": "Advisory, not normative. The specification requires a consumer to IGNORE an invalid value rather than reject the document (spec section 10.2), so a failure here is a lint result and never a parse result. Unknown keys are allowed everywhere on purpose: today's unknown key is tomorrow's field, or another tool's extension.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reserved for editor tooling. Consumers ignore it."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display name — what a human should see, not necessarily the directory or package name."
+    },
+    "description": {
+      "type": "string",
+      "description": "One line. What the project is, not how to install it."
+    },
+    "icon": {
+      "description": "The project's mark. A string is shorthand for a one-entry array: \"x.png\" means [{ \"src\": \"x.png\" }].",
+      "anyOf": [{ "$ref": "#/$defs/iconSrc" }, { "type": "array", "items": { "$ref": "#/$defs/iconEntry" } }]
+    },
+    "color": {
+      "description": "Brand colour. A string is shorthand for the primary role: \"#7c3aed\" means { \"primary\": \"#7c3aed\" }.",
+      "anyOf": [{ "$ref": "#/$defs/color" }, { "$ref": "#/$defs/colorRoles" }]
+    },
+    "homepage": {
+      "type": "string",
+      "pattern": "^https?://",
+      "description": "An absolute http or https URL."
+    },
+    "authors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Free-form; \"Name <email>\" is conventional but not required."
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "For search and grouping."
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Tool-specific settings, keyed by a name the writer owns. Contents are defined by that tool alone.",
+      "additionalProperties": { "type": "object" }
+    }
+  },
+  "$defs": {
+    "iconSrc": {
+      "type": "string",
+      "minLength": 1,
+      "$comment": "A path relative to repo.json, or an absolute http(s) or data: URL. Containment (spec section 6) cannot be checked here: it depends on the repository root and on normalising '..', so it is the consumer's job.",
+      "description": "A path relative to this file, or an absolute http(s) or data: URL."
+    },
+    "iconEntry": {
+      "type": "object",
+      "properties": {
+        "src": { "$ref": "#/$defs/iconSrc" },
+        "sizes": {
+          "type": "string",
+          "pattern": "^(any|[0-9]+x[0-9]+)([ \\t]+(any|[0-9]+x[0-9]+))*$",
+          "description": "Space-separated <w>x<h>, or \"any\" for a vector."
+        },
+        "type": {
+          "type": "string",
+          "description": "MIME type. A hint only — a wrong or absent type never disqualifies an icon."
+        }
+      },
+      "required": ["src"]
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+      "description": "#rgb or #rrggbb, case-insensitive. No other CSS colour syntax."
+    },
+    "colorRoles": {
+      "type": "object",
+      "$comment": "Additional properties are allowed rather than forbidden: color.dark is reserved for a future version, and rejecting it here would make a forward-looking file look broken.",
+      "properties": {
+        "primary": { "$ref": "#/$defs/color" },
+        "accent": { "$ref": "#/$defs/color" },
+        "background": { "$ref": "#/$defs/color" }
+      }
+    }
+  }
+}

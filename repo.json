@@ -1,0 +1,8 @@
+{
+  "$schema": "https://repos-json.github.io/repos-json/schema/repo.schema.json",
+  "name": "repo.json",
+  "description": "An open metadata file with which a repository declares what it is and how it should look",
+  "color": "#2563eb",
+  "homepage": "https://repos-json.github.io/repos-json/",
+  "keywords": ["repo-json", "specification", "metadata", "repository"]
+}
