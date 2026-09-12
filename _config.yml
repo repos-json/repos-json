@@ -6,6 +6,15 @@ description: >-
 # the current theme is available rather than the legacy Pages Jekyll 3.9 builder.
 theme: just-the-docs
 
+# Every page gets the theme's layout from here rather than from its own front matter: the spec and
+# the examples index shipped without one and rendered as bare HTML — no nav, no title, no styles —
+# which is a failure you only see by loading the built page, not by building it.
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
 search_enabled: true
 color_scheme: light
 heading_anchors: true
