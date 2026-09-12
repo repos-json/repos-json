@@ -28,7 +28,7 @@ test("a document that is not an object is reported, not thrown", () => {
   });
 });
 
-// Spec section 10.2: an invalid value is ignored, not fatal — the rest of the document stands.
+// Spec section 11.2: an invalid value is ignored, not fatal — the rest of the document stands.
 test("one bad field does not drop the file", () => {
   const meta = parseRepoJson({ name: 42, description: "kept", color: "rebeccapurple" });
   assert.equal(meta.name, null);
@@ -71,7 +71,7 @@ test("extensions are kept per tool, unvalidated", () => {
   assert.deepEqual(meta.dropped, [{ field: "extensions.broken", reason: "not an object" }]);
 });
 
-// Spec section 10.2: unknown keys are preserved, never an error. Preservation is the consumer's job
+// Spec section 11.2: unknown keys are preserved, never an error. Preservation is the consumer's job
 // when it rewrites, so what this library must guarantee is that it does not touch the document.
 test("parsing leaves the document untouched, unknown keys included", () => {
   const raw = { name: "x", futureField: { keep: true }, extensions: { other: { a: 1 } } };

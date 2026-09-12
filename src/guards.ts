@@ -1,5 +1,5 @@
 // Type guards for values that come straight out of `JSON.parse`. A `repo.json` arrives with the
-// repository, so nothing about its shape may be assumed (spec section 11).
+// repository, so nothing about its shape may be assumed (spec section 12).
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 

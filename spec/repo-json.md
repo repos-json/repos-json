@@ -9,7 +9,7 @@ description: The normative specification for repo.json — a small, language-agn
 
 |                   |                                                                                                                                                                     |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Version**       | 0 (draft)                                                                                                                                                           |
+| **Version**       | 0.1 (draft)                                                                                                                                                         |
 | **Status**        | Draft. Stable enough to implement; fields may be added before v1, and nothing here will be removed without a version bump.                                          |
 | **This document** | <https://repos-json.github.io/repos-json/spec/>                                                                                                                     |
 | **Repository**    | <https://github.com/repos-json/repos-json>                                                                                                                          |
@@ -110,7 +110,7 @@ When a media type is needed, `application/json` applies.
 
 A consumer that cannot parse the file — invalid JSON, a top-level array, an unreadable file —
 **MUST** behave exactly as if no `repo.json` existed, and **SHOULD** report why
-([§10.3](#103-diagnostics)).
+([§11.3](#113-diagnostics)).
 
 ## 4. Document model
 
@@ -143,11 +143,12 @@ A consumer that cannot parse the file — invalid JSON, a top-level array, an un
 | `authors`     | array of strings | Free-form; `Name <email>` is conventional but not required.                                    |
 | `keywords`    | array of strings | For search and grouping.                                                                       |
 | `extensions`  | object           | Tool-specific settings, keyed by tool name. See [§4.7](#47-extensions).                        |
+| `projects`    | string \| array  | The units this repository contains. See [§9](#9-projects).                                     |
 | `$schema`     | string           | Reserved for editor tooling. A consumer **MUST** ignore it.                                    |
 
 ### 4.1 Types and tolerance
 
-A value of the wrong type is **ignored, never fatal** ([§10.2](#102-consumers)). A number where
+A value of the wrong type is **ignored, never fatal** ([§11.2](#112-consumers)). A number where
 `name` expects a string drops `name`; it does not drop the file.
 
 A consumer **MUST** treat a string that is empty or contains only whitespace as absent, and
@@ -158,10 +159,10 @@ stray space has made the file's formatting visible.
 ### 4.2 `name`
 
 The name a human should see. A consumer **SHOULD** prefer it over the directory name and over any
-ecosystem manifest's name ([§9](#9-precedence-among-sources)).
+ecosystem manifest's name ([§10](#10-precedence-among-sources)).
 
 `name` is text. A consumer **MUST NOT** interpret it as markup, a path, or a format string
-([§11](#11-security-considerations)).
+([§12](#12-security-considerations)).
 
 ### 4.3 `description`
 
@@ -254,18 +255,20 @@ entirely, and a reader would take it for a list of tools the repository _provide
 
 `pyproject.toml` makes ownership a hard rule (you may use `[tool.$NAME]` only if you own `$NAME` on
 PyPI). Here it is a convention, because there is no registry to check against — see
-[§13](#13-open-questions).
+[§14](#14-open-questions).
 
 ## 5. Normalisation
 
 > Where a field has an obvious primary value, the scalar form is shorthand for the fullest form.
 
-One rule, stated once, covering both fields that have a shorthand:
+One rule, stated once, covering every field that has a shorthand:
 
-| Written              | Means                               |
-| -------------------- | ----------------------------------- |
-| `"icon": "x.png"`    | `"icon": [{ "src": "x.png" }]`      |
-| `"color": "#7c3aed"` | `"color": { "primary": "#7c3aed" }` |
+| Written                     | Means                                    |
+| --------------------------- | ---------------------------------------- |
+| `"icon": "x.png"`           | `"icon": [{ "src": "x.png" }]`           |
+| `"color": "#7c3aed"`        | `"color": { "primary": "#7c3aed" }`      |
+| `"projects": "packages/*"`  | `"projects": [{ "path": "packages/*" }]` |
+| `"projects": ["functions"]` | `"projects": [{ "path": "functions" }]`  |
 
 A consumer **SHOULD** normalise at the boundary — once, where the file is read — and work with the
 expanded form everywhere after. The rule exists so that an implementation has a single code path
@@ -284,7 +287,7 @@ projects and nowhere else — which is exactly the outcome this file exists to a
 Given a `src` (or any future path-valued field), a consumer **MUST** resolve it as follows:
 
 1. If it matches an absolute URL with scheme `http` or `https`, it is a **remote** reference. A
-   consumer **MAY** fetch it, and **MAY** decline to ([§11](#11-security-considerations)).
+   consumer **MAY** fetch it, and **MAY** decline to ([§12](#12-security-considerations)).
 2. If it begins with `data:`, it is an **inline** reference, subject to the consumer's own size and
    media-type limits.
 3. If it carries any other URL scheme — `file:`, `javascript:`, `ftp:` and the rest — the consumer
@@ -292,6 +295,11 @@ Given a `src` (or any future path-valued field), a consumer **MUST** resolve it 
 4. Otherwise it is a **repository-relative path**. The consumer **MUST** reject it if it is
    absolute (`/etc/passwd`, `C:\Windows`, or a UNC path), and **MUST** reject it if resolving it
    against the repository root — after normalising `.` and `..` — lands outside that root.
+
+**The repository root normalises to the empty path.** `.`, `./` and `a/..` all name the directory
+holding `repo.json`. Whether that is usable depends on the field asking: `icon.src` **MUST** reject
+it, because an icon has to name a file, while `projects[].path` **MUST** accept it, because the root
+of a repository can itself be one of its units ([§9](#9-projects)).
 
 A consumer **MUST NOT** follow a relative path outside the repository. `../../etc/passwd` is not a
 mistake to tolerate quietly; it is a path the file was never entitled to name. A rejected entry is
@@ -396,7 +404,115 @@ Version 0 defines **one** set of colours and expects consumers to adapt: derive 
 would buy is already covered by deriving contrast, and a field that authors fill in inconsistently
 is worse than no field.
 
-## 9. Precedence among sources
+## 9. Projects
+
+A repository is not always one unit. A monorepo holds packages; an application repository holds the
+app and its functions; a mixed-ecosystem repository holds a Python service beside a TypeScript front
+end. [§3.1](#31-location) already lets a consumer read a `repo.json` in a subdirectory — but nothing
+tells it which subdirectories to look in, which leaves that permission unreachable without guessing,
+and guessing is what this format exists to stop.
+
+`projects` names them.
+
+```jsonc
+"projects": ["packages/*"]
+```
+
+```jsonc
+"projects": [
+  { "path": ".", "name": "web", "color": "#1d4ed8" },
+  { "path": "functions", "name": "Firebase Functions", "icon": "brand/fn.svg" },
+  { "path": "packages/*" }
+]
+```
+
+The field says **what units exist and what each one is**. It carries no dependency graph, no build
+order and no task definitions — a consumer cannot build anything from it — so it stays on the
+identity side of [§1.3](#13-scope-and-non-goals), and the ecosystem manifests keep everything they
+carry today.
+
+### 9.1 The field
+
+`projects` **MUST** be a string, or an array whose entries are strings or objects. The shorthand rule
+of [§5](#5-normalisation) applies: a string is shorthand for a one-entry array, and a string entry is
+shorthand for an object carrying only `path`.
+
+**An entry is a `repo.json` document with a `path`.** Every field of [§4](#4-document-model) may
+appear in one and means there exactly what it means at the top level, one directory down — a
+dashboard showing five packages wants five names and five marks, not one repeated five times.
+
+- `path` is **REQUIRED**. An entry without a usable one **MUST** be ignored and reported
+  ([§11.3](#113-diagnostics)).
+- An entry **MUST NOT** carry `projects`, and a consumer **MUST** ignore it if present. Nesting is
+  expressed by the nested directory's own `repo.json` ([§3.1](#31-location)), which keeps a document
+  finite and stops one file from describing a tree it cannot see.
+
+### 9.2 Paths and wildcards
+
+A `path` resolves by [§6](#6-path-resolution), with two differences that follow from naming a
+directory rather than a file:
+
+- A project path is **never remote and never inline**. A `path` carrying any URL scheme — `https:`
+  and `data:` included — **MUST** be rejected.
+- The **repository root is a valid project path**: `.` names the directory holding `repo.json`, and
+  is how a repository says its own root is one of its units.
+
+A path segment that is exactly `*` is a **wildcard**, matching one directory name:
+
+- A consumer **MUST** match directories only. `packages/README.md` is not a project.
+- A consumer **MUST NOT** match a name beginning with `.`, and **SHOULD NOT** match `node_modules`,
+  `vendor`, or a directory its ecosystem treats as vendored. Nothing good comes of a switcher
+  listing nine hundred projects.
+- `*` anywhere else within a segment, and `**` in any position, are **not defined by this version**.
+  A consumer **MUST** ignore such an entry and report it rather than guess at a glob dialect.
+- An entry whose `path` contains a wildcard **MUST NOT** carry the identity fields `name`,
+  `description` or `icon`: one entry standing for many directories cannot name them. A consumer
+  **MUST** ignore those fields, keep the path, and report what it dropped.
+
+### 9.3 Resolving the set
+
+1. **Expand wildcards** in the declaration order of the entries, each wildcard's matches sorted **by
+   UTF-16 code unit** — not by locale. `localeCompare` and a plain comparison disagree on exactly the
+   names a monorepo has (case, digits, accents), and two tools listing the same packages in two
+   orders is the disagreement this document exists to prevent.
+2. **Deduplicate: one directory is one project**, however many entries name it. The **first** entry
+   naming a directory supplies its metadata and its position; any later entry naming the same
+   directory **MUST** be ignored and **SHOULD** be reported. To give one directory of a wildcard a
+   name of its own, name it **before** the wildcard.
+3. **Absent means one project.** `projects` absent **MUST** mean a single project rooted at the
+   directory holding `repo.json`. It never means "unknown", so a consumer has one code path whether
+   or not the repository turns out to be a monorepo.
+4. **Report what matched nothing.** A wildcard that matches no directory **SHOULD** be reported
+   ([§11.3](#113-diagnostics)). Measuring zero units and declaring success is the one outcome nobody
+   notices is wrong. A consumer that cannot list directories cannot honour this; one that can
+   **SHOULD**.
+
+Declaration order is significant: it is the order a consumer **SHOULD** display the projects in,
+because the order an author wrote them in is information.
+
+### 9.4 Extent and nesting
+
+Projects **MAY** nest, and a consumer **MUST NOT** assume they are disjoint.
+
+A consumer that computes a project's **extent** — the files it treats as belonging to that project —
+**MUST** exclude the directories of any nested projects.
+
+```jsonc
+"projects": [".", "functions"]
+```
+
+This is the shape that breaks a naive consumer, and what it costs is measurable. In one repository of
+exactly this layout the application is rooted at the repository root — its `package.json`,
+`tsconfig.json` and lockfile all sit there — while `functions/` carries its own three. Measured as if
+`.` were the whole tree: `tsc` reported zero type errors having never looked at `functions/`'s 93
+TypeScript files, because the root `tsconfig.json` includes only `src/**`; `npm audit` read the root
+lockfile and reported 3 high advisories, while `functions/yarn.lock` held 4 more high and 19 moderate
+that nothing ever saw. The denominator was the whole repository and the numerator was half of it.
+
+A consumer that only displays projects computes no extent, and this rule does not reach it. It is
+written for the consumers that measure, lint, audit or package them.
+
+## 10. Precedence among sources
 
 A repository can carry several sources of the same fact. Tools that disagree about which to read
 show the same repository differently, so the order is part of this specification:
@@ -413,9 +529,27 @@ sources for fields the file does not set.
 A consumer's own per-repository configuration, if it has one, sits **above** all three: `repo.json`
 is what a repository says to every tool, not an override of what a user told one tool.
 
-## 10. Conformance
+### 10.1 A project's fields
 
-### 10.1 Producers
+A consumer reading metadata for a project ([§9](#9-projects)) resolves each field in this order:
+
+1. **The project directory's own `repo.json`**, if present — the unit's own statement about itself.
+2. **The inline entry** in the parent's `projects`.
+3. **The parent document**, for the presentation fields `color` and `icon` only. Inheriting the brand
+   colour is what makes a monorepo look like one repository in a dashboard, while a package that sets
+   its own still wins.
+4. **The ecosystem manifest** in the project directory, for `name` and `description` — step 2 above,
+   applied one level down. Failing that, a consumer **SHOULD** fall back to the directory name.
+
+`name` and `description` **MUST NOT** be inherited from the parent document: five packages all
+called "acme platform" is worse than five packages called by their directories.
+
+An entry **MAY** carry `extensions`, scoped to that project; the ownership rules of
+[§4.7](#47-extensions) apply unchanged.
+
+## 11. Conformance
+
+### 11.1 Producers
 
 A conforming producer:
 
@@ -423,10 +557,12 @@ A conforming producer:
 - **MUST** keep every value within the types in [§4](#4-document-model).
 - **SHOULD** write `/`-separated relative paths that stay inside the repository.
 - **SHOULD** claim only `extensions` names it owns.
+- **SHOULD** list its units with `projects` when the repository holds more than one, and **SHOULD**
+  name a specific directory before a wildcard that also matches it ([§9.3](#93-resolving-the-set)).
 - **MUST NOT** rely on a consumer reading any field: every field is optional to _read_ as well as to
   write, and a consumer may support a subset.
 
-### 10.2 Consumers
+### 11.2 Consumers
 
 A conforming consumer:
 
@@ -438,10 +574,12 @@ A conforming consumer:
   Today's unknown key is tomorrow's field, or another tool's extension.
 - **MUST** implement [§6](#6-path-resolution) containment, [§7](#7-icon-selection) selection order,
   and [§8.1](#81-syntax) colour syntax if it implements the corresponding field at all.
+- **MUST** treat an absent `projects` as one project at the repository root, and **MUST NOT** assume
+  projects are disjoint ([§9.4](#94-extent-and-nesting)), if it implements `projects` at all.
 - **MAY** implement any subset of the fields. Partial support is conforming; silent misbehaviour is
   not.
 
-### 10.3 Diagnostics
+### 11.3 Diagnostics
 
 A consumer **SHOULD** be able to report which fields it applied and which it dropped, and why.
 
@@ -449,7 +587,7 @@ A consumer **SHOULD** be able to report which fields it applied and which it dro
 debuggable if something reports it. A consumer whose only feedback is the rendered result puts the
 author in the position of bisecting their own metadata file.
 
-## 11. Security considerations
+## 12. Security considerations
 
 `repo.json` arrives with the repository. Anyone who can get a checkout onto a machine — a clone, a
 pull request, a submodule, a downloaded archive — controls every byte of it. A consumer **MUST**
@@ -476,8 +614,12 @@ treat the whole document as untrusted input.
   of icon entries it will consider. Nothing in this format needs to be large.
 - **Extensions are not safer.** `extensions.<name>` is untrusted for exactly the same reasons. An
   owner validating its own entry gets no guarantees from this document beyond "it is an object".
+- **Walking project paths.** Expanding a wildcard means listing directories the file chose. Every
+  expanded path **MUST** satisfy [§6](#6-path-resolution) containment in its own right — a `*` must
+  never match `..` — and a project directory that is a symlink is the symlink case above, one level
+  up. A consumer **SHOULD** bound how many directories one expansion may produce.
 
-## 12. Examples (informative)
+## 13. Examples (informative)
 
 A machine-learning repository — no web assets, no package registry:
 
@@ -514,26 +656,44 @@ A web project that already has a favicon — `repo.json` adds only what the exis
 }
 ```
 
+A repository whose root is itself a unit, with a second unit inside it — the nesting of
+[§9.4](#94-extent-and-nesting):
+
+```json
+{
+  "name": "acme storefront",
+  "color": "#f43f5e",
+  "projects": [
+    { "path": ".", "name": "web app" },
+    { "path": "functions", "name": "cloud functions" }
+  ]
+}
+```
+
 More, including a document that exercises every field, are in
 [`examples/`](https://github.com/repos-json/repos-json/tree/main/examples).
 
-## 13. Open questions
+## 14. Open questions
 
 - **`color.dark`** — worth adding, or does deriving contrast cover it?
 - **Enforcing `extensions.<name>` ownership** — is a convention enough without a registry?
 - **Forge rendering** — `name` + `icon` + `color` is exactly a repository card. Worth proposing to
   GitHub/GitLab once the format has more than one implementation.
 - **Localisation** — a `name` per locale, or out of scope for a file this small?
+- **Recursive wildcards** — `**` is undefined in [§9.2](#92-paths-and-wildcards). Is a depth-limited
+  form worth defining, or is a repository that needs one better described by nested `repo.json` files?
+- **Project kinds** — a consumer often wants to know that `functions/` is deployed and `packages/ui`
+  is published. Is that identity, and so in scope, or build information, and so out?
 
-## 14. References
+## 15. References
 
-### 14.1 Normative
+### 15.1 Normative
 
 - [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) / [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) — requirement keywords.
 - [RFC 8259](https://www.rfc-editor.org/rfc/rfc8259) — JSON.
 - [WCAG 2.2, relative luminance and contrast ratio](https://www.w3.org/TR/WCAG22/#dfn-relative-luminance) — the derivation in [§8.2](#82-text-colour-is-derived-never-declared).
 
-### 14.2 Informative
+### 15.2 Informative
 
 - [W3C Web Application Manifest](https://www.w3.org/TR/appmanifest/) — `icons[]`, `sizes`, `theme_color`, `background_color`.
 - [pyproject.toml `[tool]`](https://packaging.python.org/en/latest/specifications/pyproject-toml/) — reserves a namespace without specifying its contents.
@@ -544,17 +704,19 @@ More, including a document that exercises every field, are in
 
 ## Appendix A. Changelog
 
-| Version | Date       | Change                                                                                                                                                                                                                                                                                           |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 0       | 2026-09-12 | First publication in this repository. Carried over from `receptron/mulmoterminal:docs/repo-json.md` and restated normatively: requirement keywords throughout, path resolution and icon selection written as algorithms, and [§11](#11-security-considerations) added. No field changed meaning. |
+| Version | Date       | Change                                                                                                                                                                                                                                                                                                                                                              |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0       | 2026-09-12 | First publication in this repository. Carried over from `receptron/mulmoterminal:docs/repo-json.md` and restated normatively: requirement keywords throughout, path resolution and icon selection written as algorithms, and a security-considerations section added. No field changed meaning.                                                                     |
+| 0.1     | 2026-09-12 | Added `projects` ([§9](#9-projects)) and the per-project precedence of [§10.1](#101-a-projects-fields); [§6](#6-path-resolution) now defines the repository root as the empty path. The tail renumbered: precedence 9→10, conformance 10→11 (10.3→11.3), security 11→12, examples 12→13, open questions 13→14, references 14→15. No existing field changed meaning. |
 
 ## Appendix B. Reference implementation
 
 [`src/`](https://github.com/repos-json/repos-json/tree/main/src) in this repository implements
 normalisation ([§5](#5-normalisation)), path resolution ([§6](#6-path-resolution)), icon ranking
-([§7](#7-icon-selection)) and the colour rules ([§8](#8-colours)), with a test per normative rule.
-It touches no filesystem: icon selection takes a caller-supplied predicate for "does this resolve",
-so the policy for reading files stays with the consumer.
+([§7](#7-icon-selection)), the colour rules ([§8](#8-colours)) and projects ([§9](#9-projects)), with
+a test per normative rule. It touches no filesystem: icon selection takes a caller-supplied predicate
+for "does this resolve", and wildcard expansion takes a caller-supplied directory lister, so the
+policy for reading files and walking directories stays with the consumer.
 
 The first shipping implementation is
 [MulmoTerminal](https://github.com/receptron/mulmoterminal), which reads `repo.json` for a
