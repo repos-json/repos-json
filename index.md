@@ -28,6 +28,7 @@ Every field is optional, and `{}` is valid.
 - **[Specification](spec/)** — the normative document: fields, normalisation, path resolution, icon selection, colour rules, security considerations.
 - **[Examples](examples/)** — one per shape a real repository takes.
 - **[Schema](schema/repo.schema.json)** — add it as `$schema` and your editor completes the fields.
+- **[Implementations](implementations/)** — what MulmoTerminal and scoria read, with screenshots.
 - **[Repository](https://github.com/repos-json/repos-json)** — reference implementation, tests, and the issue tracker.
 
 ## The three rules that matter

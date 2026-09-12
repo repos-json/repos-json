@@ -130,13 +130,16 @@ implementations are both welcome in [issues](https://github.com/repos-json/repos
 
 ## Implementations
 
-|                                                             | Reads                                               | Notes                                                                         |
-| ----------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [MulmoTerminal](https://github.com/receptron/mulmoterminal) | `name`, `icon`, `color`, `extensions.mulmoterminal` | The first shipping implementation; derives seven chrome roles from `primary`. |
-| [`src/`](src/) in this repository                           | Everything the specification defines                | The reference implementation, with a test per normative rule.                 |
+|                                                             | Reads                                               |                                                                                                                                               |
+| ----------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [MulmoTerminal](https://github.com/receptron/mulmoterminal) | `name`, `icon`, `color`, `extensions.mulmoterminal` | A cell per repository: the name becomes a badge, the icon a mark, and one colour becomes seven. Shipping since 4.5.0.                         |
+| **scoria**                                                  | `projects`-shaped units (§9.2–§9.4)                 | A code-quality harness that measures each unit separately, and excludes nested ones so nothing is counted twice. Specified, not yet released. |
+| [`src/`](src/) in this repository                           | Everything the specification defines                | The reference implementation, with a test per normative rule.                                                                                 |
 
-A second implementation — especially one this format's authors did not write — is the thing that
-unblocks [proposing repository cards to a forge](https://github.com/repos-json/repos-json/issues/9).
+**[What each one does with the file, with screenshots →](https://repos-json.github.io/repos-json/implementations/)**
+
+A second implementation this format's authors did not write is what unblocks
+[proposing repository cards to a forge](https://github.com/repos-json/repos-json/issues/9).
 Open a PR adding a row.
 
 ## License
