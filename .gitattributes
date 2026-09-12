@@ -1,0 +1,10 @@
+# Normalize line endings so a Windows checkout doesn't rewrite text to CRLF.
+# Without this, git-for-windows' default core.autocrlf=true checks every file out with CRLF, and
+# `prettier --check` then flags every file in the repository — which is exactly how the first
+# windows leg of this repository's CI failed. Keep the repo LF-only everywhere; let git decide
+# which files are text.
+* text=auto eol=lf
+
+# Files whose meaning a CRLF would change regardless of guesswork.
+*.sh text eol=lf
+*.json text eol=lf
