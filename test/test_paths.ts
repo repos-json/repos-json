@@ -23,7 +23,7 @@ test("absolute paths are rejected on both platforms", () => {
   });
 });
 
-// Spec section 6 and 11: containment is applied to the NORMALISED path. The string as written
+// Spec section 6 and 12: containment is applied to the NORMALISED path. The string as written
 // passes any check that only looks at how it starts.
 test("a path that escapes the repository is rejected however it is spelled", () => {
   ["../../etc/passwd", "assets/../../etc/passwd", "..", "./../x", "a/b/../../../c"].forEach((src) => {
@@ -37,10 +37,13 @@ test("a contained path comes back normalised, with forward slashes", () => {
   assert.deepEqual(classifyIconSource("assets/tmp/../logo.svg"), { kind: "path", path: "assets/logo.svg" });
 });
 
-test("an empty or all-dots path names nothing", () => {
+// Spec section 6: the repository root normalises to the empty path, and an icon must name a file.
+test("the repository root is a path, and never an icon", () => {
   assert.equal(classifyIconSource("   ").kind, "rejected");
-  assert.equal(containedPath("."), null);
-  assert.equal(containedPath("./"), null);
+  assert.equal(containedPath("."), "");
+  assert.equal(containedPath("./"), "");
+  assert.equal(containedPath("assets/.."), "");
+  assert.deepEqual(classifyIconSource("."), { kind: "rejected", reason: "names the repository root, not a file" });
 });
 
 test("containment returns the repository-relative path, never an absolute one", () => {

@@ -11,14 +11,15 @@ Every file here is a valid `repo.json`. The test suite parses each one with the 
 implementation **and** validates it against [the schema](../schema/repo.schema.json), so a sample
 that contradicts either one fails the build.
 
-| File                                   | What it shows                                                                                                                        |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| [`empty.json`](empty.json)             | `{}` is valid. Every field is optional, and a consumer must work with nothing.                                                       |
-| [`minimal.json`](minimal.json)         | What most repositories will actually write: a name, a line, a colour.                                                                |
-| [`ml-project.json`](ml-project.json)   | The case the format exists for — no web assets, no package registry, an icon that lives in `docs/`.                                  |
-| [`monorepo.json`](monorepo.json)       | Several icon sizes, and all three colour roles. No single ecosystem manifest speaks for the whole tree.                              |
-| [`web-project.json`](web-project.json) | A project whose favicon is already discoverable: `repo.json` adds only what the existing files cannot say, plus one tool's settings. |
-| [`full.json`](full.json)               | Every field, including a remote icon and two `extensions` entries.                                                                   |
+| File                                           | What it shows                                                                                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`empty.json`](empty.json)                     | `{}` is valid. Every field is optional, and a consumer must work with nothing.                                                                   |
+| [`minimal.json`](minimal.json)                 | What most repositories will actually write: a name, a line, a colour.                                                                            |
+| [`ml-project.json`](ml-project.json)           | The case the format exists for — no web assets, no package registry, an icon that lives in `docs/`.                                              |
+| [`monorepo.json`](monorepo.json)               | Several icon sizes, all three colour roles, and `projects: ["packages/*"]` — one entry standing for every package.                               |
+| [`nested-projects.json`](nested-projects.json) | The nesting case: the root is itself a unit, with a second unit inside it. A consumer measuring `.` as the whole tree counts `functions/` twice. |
+| [`web-project.json`](web-project.json)         | A project whose favicon is already discoverable: `repo.json` adds only what the existing files cannot say, plus one tool's settings.             |
+| [`full.json`](full.json)                       | Every field, including a remote icon and two `extensions` entries.                                                                               |
 
 ## Trying one
 
@@ -29,6 +30,10 @@ npx tsx -e "
   console.dir(parseRepoJson(JSON.parse(readFileSync('examples/full.json', 'utf8'))), { depth: null });
 "
 ```
+
+Projects follow the same shorthand: `"projects": "packages/*"` is one entry, and `expandProjects`
+turns it into one directory per package — given a directory lister, which the library takes from the
+caller rather than reaching for the filesystem itself.
 
 The shorthand rules ([spec §5](https://repos-json.github.io/repos-json/spec/#5-normalisation)) mean
 `minimal.json`'s `"color": "#0f766e"` comes back as `{ primary: "#0f766e", accent: null, background: null }`,

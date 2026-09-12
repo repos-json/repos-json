@@ -63,6 +63,25 @@ is a specification rather than a convention:
 2. **Icons are ranked** vector first, then largest, then author order — and a consumer takes the first that _resolves_.
 3. **Text colour is derived, never declared**, by WCAG relative luminance. A declared one is an unreadable one, sooner or later.
 
+## Monorepos
+
+A repository is not always one unit. `projects` names the units it contains, so a tool no longer has
+to guess where they are:
+
+```json
+{
+  "name": "acme platform",
+  "color": "#1d4ed8",
+  "projects": ["packages/*"]
+}
+```
+
+An entry is a `repo.json` document with a `path`, so a unit can carry its own name, icon and colour —
+inline, or in its own `repo.json` one directory down. Projects **may nest**: a root that is itself a
+unit with `functions/` inside it is written `[".", "functions"]`, and a consumer computing what
+belongs to `.` must exclude `functions/`. Skipping that is how a type check reports zero errors
+having never looked at 93 files ([§9](https://repos-json.github.io/repos-json/spec/#9-projects)).
+
 ## For implementers
 
 ```bash
@@ -78,25 +97,32 @@ resolve_, so the policy for reading files, fetching URLs and following symlinks 
 consumer, where the specification puts it.
 
 ```ts
-import { parseRepoJson, selectIcon, classifyIconSource, readableTextColorFor } from "repo-json";
+import { parseRepoJson, selectIcon, classifyIconSource, readableTextColorFor, resolveProjects } from "repo-json";
 
 const meta = parseRepoJson(JSON.parse(await readFile("repo.json", "utf8")));
 meta.dropped.forEach(({ field, reason }) => console.warn(`repo.json: ignored ${field} — ${reason}`));
 
 const icon = selectIcon(meta.icons, (candidate) => canRead(classifyIconSource(candidate.src)));
 const ink = meta.colors.primary === null ? null : readableTextColorFor(meta.colors.primary);
+
+// Wildcards expand against a directory lister you supply — the library never reads a directory.
+const { projects } = resolveProjects(meta, (dir) =>
+  readdirSync(join(repo, dir), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name),
+);
 ```
 
 ## Status
 
-**Version 0, draft.** Stable enough to implement; fields may be added before v1, and nothing will be
+**Version 0.1, draft.** Stable enough to implement; fields may be added before v1, and nothing will be
 removed without a version bump. The format was designed and first implemented in
 [MulmoTerminal](https://github.com/receptron/mulmoterminal)
 ([discussion](https://github.com/receptron/mulmoterminal/issues/1438)) and moved here so that it
 belongs to no single tool.
 
 Open questions — `color.dark`, extension-name ownership, forge rendering, localisation — are listed
-at the end of the [specification](spec/repo-json.md#13-open-questions). Comments and second
+at the end of the [specification](spec/repo-json.md#14-open-questions). Comments and second
 implementations are both welcome in [issues](https://github.com/repos-json/repos-json/issues).
 
 > The file is `repo.json`, singular — one repository describing itself. The organisation is

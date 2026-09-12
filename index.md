@@ -40,9 +40,13 @@ Every field is optional, and `{}` is valid.
 3. **Text colour is derived, never declared** — by WCAG relative luminance, so that every conforming
    tool reaches the same readable answer on whatever surface it happens to be painting.
 
+And one more, for repositories that hold several units: **`projects` names them**, so a monorepo can
+say so and a tool no longer guesses where its packages are — including the case where the root is
+itself a unit and another sits inside it.
+
 ## Status
 
 Version 0, draft. Designed and first implemented in
 [MulmoTerminal](https://github.com/receptron/mulmoterminal), then moved here so that it belongs to no
 single tool. Second implementations, and arguments with the [open
-questions](spec/#13-open-questions), are both welcome.
+questions](spec/#14-open-questions), are both welcome.

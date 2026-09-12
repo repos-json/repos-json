@@ -12,5 +12,6 @@
     "accent": "#f59e0b",
     "background": "#0b1020"
   },
-  "homepage": "https://acme.example"
+  "homepage": "https://acme.example",
+  "projects": ["packages/*"]
 }

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://repos-json.github.io/repos-json/schema/repo.schema.json",
+  "name": "acme storefront",
+  "description": "The shop web app and the cloud functions it deploys alongside",
+  "color": "#f43f5e",
+  "projects": [
+    { "path": ".", "name": "web app" },
+    { "path": "functions", "name": "cloud functions", "color": "#0f766e" }
+  ]
+}

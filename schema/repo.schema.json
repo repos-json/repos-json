@@ -3,52 +3,98 @@
   "$id": "https://repos-json.github.io/repos-json/schema/repo.schema.json",
   "title": "repo.json",
   "description": "An open repository metadata file: what a repository is and how it should be presented. See https://repos-json.github.io/repos-json/spec/",
-  "$comment": "Advisory, not normative. The specification requires a consumer to IGNORE an invalid value rather than reject the document (spec section 10.2), so a failure here is a lint result and never a parse result. Unknown keys are allowed everywhere on purpose: today's unknown key is tomorrow's field, or another tool's extension.",
+  "$comment": "Advisory, not normative. The specification requires a consumer to IGNORE an invalid value rather than reject the document (spec section 11.2), so a failure here is a lint result and never a parse result. Unknown keys are allowed everywhere on purpose: today's unknown key is tomorrow's field, or another tool's extension.",
   "type": "object",
+  "allOf": [{ "$ref": "#/$defs/identity" }],
   "properties": {
     "$schema": {
       "type": "string",
       "description": "Reserved for editor tooling. Consumers ignore it."
     },
-    "name": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Display name — what a human should see, not necessarily the directory or package name."
-    },
-    "description": {
-      "type": "string",
-      "description": "One line. What the project is, not how to install it."
-    },
-    "icon": {
-      "description": "The project's mark. A string is shorthand for a one-entry array: \"x.png\" means [{ \"src\": \"x.png\" }].",
-      "anyOf": [{ "$ref": "#/$defs/iconSrc" }, { "type": "array", "items": { "$ref": "#/$defs/iconEntry" } }]
-    },
-    "color": {
-      "description": "Brand colour. A string is shorthand for the primary role: \"#7c3aed\" means { \"primary\": \"#7c3aed\" }.",
-      "anyOf": [{ "$ref": "#/$defs/color" }, { "$ref": "#/$defs/colorRoles" }]
-    },
-    "homepage": {
-      "type": "string",
-      "pattern": "^https?://",
-      "description": "An absolute http or https URL."
-    },
-    "authors": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Free-form; \"Name <email>\" is conventional but not required."
-    },
-    "keywords": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "For search and grouping."
-    },
-    "extensions": {
-      "type": "object",
-      "description": "Tool-specific settings, keyed by a name the writer owns. Contents are defined by that tool alone.",
-      "additionalProperties": { "type": "object" }
+    "projects": {
+      "description": "The units this repository contains. A string is shorthand for a one-entry array, and a string entry for { \"path\": <string> }. See spec section 9.",
+      "anyOf": [
+        { "$ref": "#/$defs/projectPath" },
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [{ "$ref": "#/$defs/projectPath" }, { "$ref": "#/$defs/projectEntry" }]
+          }
+        }
+      ]
     }
   },
   "$defs": {
+    "identity": {
+      "$comment": "Everything a repo.json says about one unit. Shared verbatim by the document and by each projects[] entry, which is the specification's rule that an entry IS a repo.json document with a path (section 9.1).",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display name — what a human should see, not necessarily the directory or package name."
+        },
+        "description": {
+          "type": "string",
+          "description": "One line. What the project is, not how to install it."
+        },
+        "icon": {
+          "description": "The project's mark. A string is shorthand for a one-entry array: \"x.png\" means [{ \"src\": \"x.png\" }].",
+          "anyOf": [{ "$ref": "#/$defs/iconSrc" }, { "type": "array", "items": { "$ref": "#/$defs/iconEntry" } }]
+        },
+        "color": {
+          "description": "Brand colour. A string is shorthand for the primary role: \"#7c3aed\" means { \"primary\": \"#7c3aed\" }.",
+          "anyOf": [{ "$ref": "#/$defs/color" }, { "$ref": "#/$defs/colorRoles" }]
+        },
+        "homepage": {
+          "type": "string",
+          "pattern": "^https?://",
+          "description": "An absolute http or https URL."
+        },
+        "authors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Free-form; \"Name <email>\" is conventional but not required."
+        },
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "For search and grouping."
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Tool-specific settings, keyed by a name the writer owns. Contents are defined by that tool alone.",
+          "additionalProperties": { "type": "object" }
+        }
+      }
+    },
+    "projectEntry": {
+      "type": "object",
+      "description": "One unit of this repository: a repo.json document with a path.",
+      "allOf": [{ "$ref": "#/$defs/identity" }],
+      "properties": {
+        "path": { "$ref": "#/$defs/projectPath" },
+        "projects": false
+      },
+      "required": ["path"],
+      "$comment": "`projects: false` forbids the property outright: an entry may not nest inline, because nesting is expressed by the nested directory's own repo.json (spec section 9.1).",
+      "if": {
+        "type": "object",
+        "properties": { "path": { "type": "string", "pattern": "(^|/)\\*($|/)" } },
+        "required": ["path"]
+      },
+      "then": {
+        "$comment": "A wildcard entry stands for many directories and cannot name one, so the identity fields are forbidden on it (spec section 9.2).",
+        "properties": { "name": false, "description": false, "icon": false }
+      }
+    },
+    "projectPath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A repository-relative directory. \".\" is the repository root; a path segment of \"*\" matches one directory name.",
+      "$comment": "Never remote and never inline, so a URL scheme is rejected here where icon.src accepts one. Containment cannot be checked in a schema: it depends on normalising '..' against the repository root.",
+      "not": { "pattern": "^([A-Za-z][A-Za-z0-9+.-]*:|[/\\\\])" }
+    },
     "iconSrc": {
       "type": "string",
       "minLength": 1,
