@@ -675,15 +675,26 @@ More, including a document that exercises every field, are in
 
 ## 14. Open questions
 
-- **`color.dark`** — worth adding, or does deriving contrast cover it?
-- **Enforcing `extensions.<name>` ownership** — is a convention enough without a registry?
-- **Forge rendering** — `name` + `icon` + `color` is exactly a repository card. Worth proposing to
-  GitHub/GitLab once the format has more than one implementation.
-- **Localisation** — a `name` per locale, or out of scope for a file this small?
-- **Recursive wildcards** — `**` is undefined in [§9.2](#92-paths-and-wildcards). Is a depth-limited
-  form worth defining, or is a repository that needs one better described by nested `repo.json` files?
-- **Project kinds** — a consumer often wants to know that `functions/` is deployed and `packages/ui`
-  is published. Is that identity, and so in scope, or build information, and so out?
+Each question below has an issue, where the argument and any measurement live. Two habits decide
+them, and both are this document's own rather than new policy:
+
+- **Measure rather than argue.** This format exists because 131 of 157 repositories had nowhere to
+  put what it carries; [§8.2](#82-text-colour-is-derived-never-declared) forbids a shortcut because
+  that shortcut picks the worse ink for 29.7% of the colour space. A question that can be counted is
+  counted before it is decided.
+- **Promote, do not invent.** [`extensions`](#47-extensions) is where a tool puts what only it
+  understands, so a field earns a place in the core when **two independent tools have already
+  invented the same key for it**. The vocabulary is then what shipped and survived, rather than a
+  guess made here.
+
+| Question                                                                                 | Where it stands                                                                                                                                                                                                                                                                                                               |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`color.dark`** — worth adding, or does deriving contrast cover it?                     | [#6](https://github.com/repos-json/repos-json/issues/6) — measured: of 16 colours declared on one machine, 4 fail 3:1 on a dark surface and 4 on a light one, **none on both**, and lightness adaptation recovers every one with hue preserved to within 0.4°. Leaning: no field; make the adaptation normative here instead. |
+| **Enforcing `extensions.<name>` ownership** — is a convention enough without a registry? | [#8](https://github.com/repos-json/repos-json/issues/8) — leaning: keep the convention, and ship discovery (a list of who uses which name) rather than enforcement nobody offline can apply.                                                                                                                                  |
+| **Forge rendering** — `name` + `icon` + `color` is exactly a repository card.            | [#9](https://github.com/repos-json/repos-json/issues/9) — hold. A forge will ask who else reads this, and the answer has to be more than one author.                                                                                                                                                                          |
+| **Localisation** — a `name` per locale, or out of scope for a file this small?           | [#10](https://github.com/repos-json/repos-json/issues/10) — leaning: out of scope for v0. Every consumer would gain a language-negotiation step, and the trigger is a consumer that genuinely cannot get by without one.                                                                                                      |
+| **Recursive wildcards** — `**` is undefined in [§9.2](#92-paths-and-wildcards).          | [#7](https://github.com/repos-json/repos-json/issues/7) — measured: of 48 real workspace globs, **0** use `**` and 0 use more than one `*` segment; the deepest need, `packages/services/*`, is already expressible. Leaning: leave it undefined.                                                                             |
+| **Project kinds** — is "`functions/` is deployed" identity, or build information?        | [#11](https://github.com/repos-json/repos-json/issues/11) — leaning: out of the core, and promoted from `extensions` if two tools converge on the same key.                                                                                                                                                                   |
 
 ## 15. References
 

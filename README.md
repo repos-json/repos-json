@@ -128,6 +128,17 @@ implementations are both welcome in [issues](https://github.com/repos-json/repos
 > The file is `repo.json`, singular — one repository describing itself. The organisation is
 > `repos-json`, plural, because it is the home for the format rather than for one repository.
 
+## Implementations
+
+|                                                             | Reads                                               | Notes                                                                         |
+| ----------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [MulmoTerminal](https://github.com/receptron/mulmoterminal) | `name`, `icon`, `color`, `extensions.mulmoterminal` | The first shipping implementation; derives seven chrome roles from `primary`. |
+| [`src/`](src/) in this repository                           | Everything the specification defines                | The reference implementation, with a test per normative rule.                 |
+
+A second implementation — especially one this format's authors did not write — is the thing that
+unblocks [proposing repository cards to a forge](https://github.com/repos-json/repos-json/issues/9).
+Open a PR adding a row.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
